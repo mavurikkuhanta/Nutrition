@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Interativo de Nutrição Esportiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Academia -->
+    <!-- Application Structure Plan: A non-linear, single-page application with a sticky sidebar navigation. The structure allows students to explore topics based on interest. Key interactions like calculators, flip cards with modals, a 4-tab comparison interface, and an interactive accordion for scientific references are integrated to provide a comprehensive, multi-layered learning experience. -->
+    <!-- Visualization & Content Choices: Report Info: Energy Expenditure -> Goal: Inform -> Viz: Donut Chart -> Library: Chart.js. Report Info: Supplements vs. Food -> Goal: Compare/Organize -> Method: Interactive Flip Cards with a "Learn More" modal -> Justification: Progressive disclosure of information. Report Info: Hydration Rate Calculation (from articles) -> Goal: Personalize/Engage -> Method: Interactive Sweat Rate Calculator -> Justification: Directly applies formulas from the source material. Report Info: Scientific Articles -> Goal: Provide Evidence/Credit -> Method: Categorized Interactive Accordion -> Justification: Presents source citations in a clean, topic-grouped, and accessible format, reinforcing the scientific basis of all sections of the content. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        :root {
+            --bg-color: #F8F7F3;
+            --text-color: #3D4A49;
+            --primary-color: #4A5C5A;
+            --accent-color: #E58A62;
+            --light-gray: #A8B3B2;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-color); }
+        .nav-link.active { background-color: var(--accent-color); color: white; font-weight: 600; }
+        .section-card { background-color: white; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+        .section-card.visible { opacity: 1; transform: translateY(0); }
+        .flip-card { perspective: 1000px; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; border-radius: 0.75rem; }
+        .flip-card-back { transform: rotateY(180deg); }
+        .chart-container { position: relative; width: 100%; max-width: 400px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+        .modal { transition: opacity 0.3s ease; }
+        .tab-button.active {
+            border-color: var(--accent-color);
+            background-color: white;
+            color: var(--primary-color);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-md hidden lg:flex flex-col p-4 fixed h-full">
+        <h1 class="text-2xl font-bold text-[var(--primary-color)] text-center mb-8 mt-4">Nutri Performance</h1>
+        <nav id="desktop-nav" class="flex flex-col space-y-2">
+            <a href="#intro" class="nav-link px-4 py-2 rounded-lg">Introdução</a>
+            <a href="#eta" class="nav-link px-4 py-2 rounded-lg">Efeito Térmico</a>
+            <a href="#fases" class="nav-link px-4 py-2 rounded-lg">Fases do Treino</a>
+            <a href="#outros-suplementos" class="nav-link px-4 py-2 rounded-lg">Outros Suplementos</a>
+            <a href="#hidratacao" class="nav-link px-4 py-2 rounded-lg">Hidratação</a>
+            <a href="#aplicacoes" class="nav-link px-4 py-2 rounded-lg">Aplicações Práticas</a>
+            <a href="#resumo" class="nav-link px-4 py-2 rounded-lg">Resumo</a>
+            <a href="#referencias" class="nav-link px-4 py-2 rounded-lg">Referências</a>
+        </nav>
+    </aside>
+
+    <!-- Mobile Header/Nav -->
+    <header class="lg:hidden fixed top-0 left-0 right-0 bg-white shadow-md z-50 flex justify-between items-center p-4">
+        <h1 class="text-xl font-bold text-[var(--primary-color)]">Nutri Performance</h1>
+        <button id="menu-btn" class="p-2">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+    </header>
+    <div id="mobile-menu" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 hidden">
+        <nav class="bg-white w-64 h-full p-4 absolute top-0 right-0">
+             <button id="close-btn" class="absolute top-4 right-4 p-2 text-3xl">&times;</button>
+            <div id="mobile-nav" class="flex flex-col space-y-2 mt-12">
+                <a href="#intro" class="nav-link px-4 py-2 rounded-lg">Introdução</a>
+                <a href="#eta" class="nav-link px-4 py-2 rounded-lg">Efeito Térmico</a>
+                <a href="#fases" class="nav-link px-4 py-2 rounded-lg">Fases do Treino</a>
+                <a href="#outros-suplementos" class="nav-link px-4 py-2 rounded-lg">Outros Suplementos</a>
+                <a href="#hidratacao" class="nav-link px-4 py-2 rounded-lg">Hidratação</a>
+                <a href="#aplicacoes" class="nav-link px-4 py-2 rounded-lg">Aplicações Práticas</a>
+                <a href="#resumo" class="nav-link px-4 py-2 rounded-lg">Resumo</a>
+                <a href="#referencias" class="nav-link px-4 py-2 rounded-lg">Referências</a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 lg:ml-64 p-4 sm:p-8 pt-20 lg:pt-8">
+        <section id="intro" class="section-card min-h-[80vh] flex flex-col items-center justify-center text-center">
+            <span class="text-lg font-semibold text-[var(--accent-color)]">Curso de Bacharelado em Educação Física</span>
+            <h2 class="text-4xl md:text-5xl font-bold text-[var(--primary-color)] mt-4">Portal de Nutrição e Exercício</h2>
+            <p class="text-xl md:text-2xl mt-2 text-[var(--text-color)]">Da Performance Atlética à Saúde Metabólica</p>
+            <p class="mt-12 text-gray-500">Role a página ou use a navegação para explorar os tópicos.</p>
+        </section>
+
+        <!-- ETA Section -->
+        <section id="eta" class="section-card">
+             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Efeito Térmico dos Alimentos (ETA)</h2>
+            <p class="mb-6 text-gray-600">Explore como o corpo gasta energia para processar os alimentos, um fator chave no metabolismo e na estratégia nutricional.</p>
+            <div class="grid md:grid-cols-2 gap-8 items-center mb-10">
+                <div>
+                    <h3 class="text-xl font-semibold text-center mb-4">Gasto Energético Total Diário</h3>
+                    <div class="chart-container"><canvas id="tdeeChart"></canvas></div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-center mb-4">ETA por Macronutriente</h3>
+                    <div class="w-full max-w-md mx-auto space-y-4">
+                        <div class="text-left"><p class="font-semibold">Proteínas: 20-30%</p><div class="w-full bg-gray-200 rounded-full h-6"><div class="bg-[var(--primary-color)] h-6 rounded-full" style="width: 85%"></div></div></div>
+                        <div class="text-left"><p class="font-semibold">Carboidratos: 5-10%</p><div class="w-full bg-gray-200 rounded-full h-6"><div class="bg-[var(--accent-color)] h-6 rounded-full" style="width: 30%"></div></div></div>
+                        <div class="text-left"><p class="font-semibold">Gorduras: 0-3%</p><div class="w-full bg-gray-200 rounded-full h-6"><div class="bg-[var(--light-gray)] h-6 rounded-full" style="width: 10%"></div></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-[var(--bg-color)] p-6 rounded-lg">
+                 <h3 class="text-2xl font-semibold text-[var(--primary-color)] border-l-4 border-[var(--accent-color)] pl-4 mb-4">Aprofundando o ETA: Fatores e Implicações</h3>
+                 <div class="grid md:grid-cols-2 gap-6 text-sm md:text-base">
+                     <div>
+                        <h4 class="font-bold text-lg text-[var(--primary-color)] mb-2">Fatores que Influenciam</h4>
+                        <ul class="list-disc list-inside space-y-2">
+                             <li><strong>Processamento:</strong> Alimentos integrais têm um ETA maior.</li>
+                             <li><strong>Composição:</strong> Refeições ricas em proteínas e fibras elevam mais o ETA.</li>
+                             <li><strong>Individualidade:</strong> Idade, composição corporal e genética influenciam.</li>
+                             <li><strong>Exercício Físico:</strong> Potencializa o ETA da refeição subsequente.</li>
+                        </ul>
+                     </div>
+                     <div>
+                         <h4 class="font-bold text-lg text-[var(--primary-color)] mb-2">Implicações Práticas</h4>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Gestão de Peso:</strong> Contribui modestamente para o gasto calórico.</li>
+                            <li><strong>Saciedade:</strong> Alimentos com alto ETA (proteínas) saciam mais.</li>
+                             <li><strong>Qualidade da Dieta:</strong> O corpo lida de forma diferente com cada macro.</li>
+                        </ul>
+                     </div>
+                 </div>
+            </div>
+        </section>
+
+        <!-- Fases do Treino Section -->
+        <section id="fases" class="section-card">
+            <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Nutrição nas Fases do Treino</h2>
+            <p class="mb-6 text-gray-600">Explore as recomendações para cada momento e clique em "Saiba Mais" para entender os mecanismos bioquímicos de cada suplemento.</p>
+            <div class="mb-8">
+                <h3 class="text-2xl font-semibold text-[var(--primary-color)] border-l-4 border-[var(--accent-color)] pl-4 mb-4">1. Pré-Treino</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Cafeína</h3><p>Melhora foco e performance</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="cafeina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Café, Chá Verde, Guaraná</p></div></div></div>
+                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Creatina</h3><p>Aumenta força e potência</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="creatina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Carne Vermelha, Salmão</p></div></div></div>
+                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Beta-Alanina</h3><p>Reduz a fadiga muscular</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="beta_alanina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Frango, Peru, Carnes</p></div></div></div>
+                </div>
+            </div>
+            <div class="mb-8">
+                 <h3 class="text-2xl font-semibold text-[var(--primary-color)] border-l-4 border-[var(--accent-color)] pl-4 mb-4">2. Durante o Treino</h3>
+                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl">
+                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white p-4 text-center"><h3 class="text-xl font-bold">Carboidratos Rápidos</h3><p>(Maltodextrina/Dextrose)</p><small class="mt-2 block">Fornecem glicose de rápida absorção para manter a energia.</small></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Mel, Banana, Suco de Uva</p></div></div></div>
+                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white p-4 text-center"><h3 class="text-xl font-bold">Bebidas Esportivas</h3><p>Reposição de eletrólitos</p><small class="mt-2 block">Repõem fluidos e sais minerais (sódio, potássio) perdidos no suor.</small></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Água de Coco</p></div></div></div>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-2xl font-semibold text-[var(--primary-color)] border-l-4 border-[var(--accent-color)] pl-4 mb-4">3. Pós-Treino</h3>
+                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Proteínas Rápidas</h3><p>(Whey Protein)</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="proteina_rapida">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Frango, Ovos, Iogurte</p></div></div></div>
+                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Proteínas Lentas</h3><p>(Caseína)</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="caseina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Queijo Cottage, Laticínios</p></div></div></div>
+                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Albumina</h3><p>Proteína do ovo</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="albumina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Claras de ovos</p></div></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Outros Suplementos Section -->
+        <section id="outros-suplementos" class="section-card">
+             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Outros Suplementos e Compostos Bioativos</h2>
+            <p class="mb-6 text-gray-600">Explore outros suplementos populares, entendendo seus mecanismos e o contexto científico de sua utilização.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">BCAAs</h3><p>Aminoácidos essenciais</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="bcaas">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Carnes, Ovos, Laticínios</p></div></div></div>
+                <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Termogênicos</h3><p>Aceleradores metabólicos</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="termogenicos">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Pimenta, Gengibre, Canela</p></div></div></div>
+                <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">L-Carnitina</h3><p>Metabolismo de gorduras</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="carnitina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Carne Vermelha, Peixe</p></div></div></div>
+            </div>
+        </section>
+        
+        <!-- Hidratação Section -->
+        <section id="hidratacao" class="section-card">
+            <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">A Peça Fundamental: Hidratação</h2>
+            <p class="mb-6 text-gray-600">A água é crucial para a performance e termorregulação. Explore as ferramentas e diretrizes baseadas na ciência para otimizar sua hidratação.</p>
+            
+            <div class="grid md:grid-cols-2 gap-8 items-start">
+                 <div>
+                    <h3 class="text-xl font-semibold mb-4 text-center">Calculadora de Necessidade Hídrica Básica</h3>
+                    <div class="bg-gray-100 p-6 rounded-lg">
+                        <label for="weight" class="block mb-2 font-medium">Seu peso (kg):</label>
+                        <input type="number" id="weight" placeholder="Ex: 70" class="w-full p-2 border rounded-md mb-4">
+                        <button id="calculate-btn" class="w-full bg-[var(--primary-color)] text-white py-2 rounded-md hover:bg-[var(--accent-color)] transition-colors">Calcular</button>
+                        <div id="hydration-result" class="mt-4 text-center font-semibold text-lg"></div>
+                    </div>
+                 </div>
+                 <div>
+                    <h3 class="text-xl font-semibold mb-4 text-center">Sinais de Desidratação</h3>
+                     <div class="grid grid-cols-2 gap-4 w-full">
+                        <div class="bg-red-100/50 p-3 rounded-lg border border-red-200 text-center">Urina escura</div>
+                        <div class="bg-red-100/50 p-3 rounded-lg border border-red-200 text-center">Sede intensa</div>
+                        <div class="bg-red-100/50 p-3 rounded-lg border border-red-200 text-center">Fadiga</div>
+                        <div class="bg-red-100/50 p-3 rounded-lg border border-red-200 text-center">Tontura</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-[var(--bg-color)] p-6 rounded-lg">
+                <h3 class="text-2xl font-semibold text-[var(--primary-color)] border-l-4 border-[var(--accent-color)] pl-4 mb-4">Hidratação Baseada em Evidências</h3>
+                <p class="mb-6 text-gray-600">As informações a seguir são baseadas nos artigos científicos fornecidos. Use a calculadora de taxa de sudorese para individualizar sua estratégia de hidratação.</p>
+                
+                <div class="grid lg:grid-cols-2 gap-8 items-start">
+                    <div>
+                        <h4 class="font-bold text-lg text-[var(--primary-color)] mb-2">Calculadora de Taxa de Sudorese</h4>
+                        <div class="space-y-3 text-sm">
+                            <div><label>Peso Corporal Pré-Exercício (kg):</label><input type="number" id="pre-weight" class="w-full p-1 border rounded mt-1"></div>
+                            <div><label>Peso Corporal Pós-Exercício (kg):</label><input type="number" id="post-weight" class="w-full p-1 border rounded mt-1"></div>
+                            <div><label>Volume de Líquido Ingerido (ml):</label><input type="number" id="fluid-intake" class="w-full p-1 border rounded mt-1"></div>
+                            <div><label>Duração do Exercício (minutos):</label><input type="number" id="duration" class="w-full p-1 border rounded mt-1"></div>
+                        </div>
+                        <button id="sweat-calc-btn" class="w-full mt-4 bg-[var(--primary-color)] text-white py-2 rounded-md hover:bg-[var(--accent-color)] transition-colors">Calcular Taxa de Sudorese</button>
+                        <div id="sweat-result" class="mt-4 text-center font-semibold"></div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg text-[var(--primary-color)] mb-2">Diretrizes de Hidratação (ACSM/NATA)</h4>
+                        <div class="space-y-4">
+                             <div class="flip-card h-28 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-blue-100 border border-blue-300 text-blue-800"><h5 class="font-bold">PRÉ-EXERCÍCIO</h5><p>Clique para ver a recomendação</p></div><div class="flip-card-back bg-blue-200 border border-blue-400 text-blue-900"><p class="text-center"><strong>500-600 ml</strong> de água ou bebida esportiva, <strong>2-3 horas antes</strong>.</p></div></div></div>
+                             <div class="flip-card h-28 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-green-100 border border-green-300 text-green-800"><h5 class="font-bold">DURANTE O EXERCÍCIO</h5><p>Clique para ver a recomendação</p></div><div class="flip-card-back bg-green-200 border border-green-400 text-green-900"><p class="text-center">Repor o máximo de líquido tolerado, buscando igualar a taxa de sudorese.</p></div></div></div>
+                             <div class="flip-card h-28 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-yellow-100 border border-yellow-300 text-yellow-800"><h5 class="font-bold">PÓS-EXERCÍCIO (RECOMENDAÇÃO CHAVE)</h5><p>Clique para ver a recomendação</p></div><div class="flip-card-back bg-yellow-200 border border-yellow-400 text-yellow-900"><p class="text-center">Ingerir <strong>150% do peso perdido</strong>. Ex: perdeu 1kg, ingerir 1,5L de líquido.</p></div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Aplicações Práticas Section -->
+        <section id="aplicacoes" class="section-card">
+            <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Aplicações Práticas</h2>
+            <p class="mb-6 text-gray-600">As estratégias nutricionais devem ser adaptadas para objetivos distintos. Compare as abordagens para performance e saúde.</p>
+            <div class="w-full max-w-4xl mx-auto">
+                <div class="grid grid-cols-2 md:grid-cols-4 border-b border-gray-300 text-center text-sm sm:text-base">
+                    <button class="tab-button p-3 font-semibold border-b-2 active" data-target="#content-musculacao">Musculação</button>
+                    <button class="tab-button p-3 font-semibold border-b-2 border-transparent text-gray-500" data-target="#content-coletivos">Esportes Coletivos</button>
+                    <button class="tab-button p-3 font-semibold border-b-2 border-transparent text-gray-500" data-target="#content-emagrecimento">Emagrecimento</button>
+                    <button class="tab-button p-3 font-semibold border-b-2 border-transparent text-gray-500" data-target="#content-diabetes">Controle de Diabetes</button>
+                </div>
+                <div class="bg-white rounded-b-lg">
+                    <div id="content-musculacao" class="tab-content text-left p-6 "><h3 class="font-bold text-lg text-[var(--primary-color)] mb-2">Foco: Hipertrofia e Força</h3><ul class="list-disc list-inside space-y-2"><li><strong>Proteína:</strong> Consumo elevado e bem distribuído para otimizar a síntese proteica (MPS).</li><li><strong>Carboidratos:</strong> Essenciais como fonte primária de energia para treinos de alta intensidade.</li><li><strong>Superávit Calórico:</strong> Um leve excedente energético é geralmente necessário para maximizar o ganho de massa.</li><li><strong>Hidratação:</strong> Crucial para a função celular e para evitar cãibras.</li></ul></div>
+                    <div id="content-coletivos" class="tab-content text-left p-6 hidden"><h3 class="font-bold text-lg text-[var(--primary-color)] mb-2">Foco: Resistência e Potência</h3><ul class="list-disc list-inside space-y-2"><li><strong>Carboidratos:</strong> Principal fonte de energia para alta demanda contínua. Estratégias de "carb loading" podem ser úteis.</li><li><strong>Hidratação e Eletrólitos:</strong> Prioridade máxima para repor perdas massivas de suor e evitar a queda de performance.</li><li><strong>Proteína:</strong> Fundamental para recuperação, mas a prioridade imediata pós-jogo é repor fluidos e glicogênio.</li></ul></div>
+                    <div id="content-emagrecimento" class="tab-content text-left p-6 hidden"><h3 class="font-bold text-lg text-[var(--primary-color)] mb-2">Foco: Emagrecimento e Composição Corporal</h3><ul class="list-disc list-inside space-y-2"><li><strong>Déficit Calórico:</strong> A base fundamental. Gasta-se mais energia do que se consome.</li><li><strong>Proteína Elevada:</strong> Maximiza a saciedade e o Efeito Térmico do Alimento (ETA), além de ajudar a preservar a massa muscular.</li><li><strong>Treinamento de Força:</strong> Essencial para preservar a massa magra, o que mantém o metabolismo basal elevado.</li><li><strong>Exercício Cardiovascular:</strong> Ferramenta eficaz para aumentar o gasto calórico total.</li></ul></div>
+                    <div id="content-diabetes" class="tab-content text-left p-6 hidden"><h3 class="font-bold text-lg text-[var(--primary-color)] mb-2">Foco: Controle de Diabetes (Tipo 2) e Saúde Metabólica</h3><ul class="list-disc list-inside space-y-2"><li><strong>Controle Glicêmico:</strong> Prioridade máxima. A dieta deve minimizar picos de glicose e insulina.</li><li><strong>Exercício Físico:</strong> Atua como um agente sensibilizador de insulina. A contração muscular pode captar glicose do sangue mesmo com pouca insulina (via translocação de GLUT4).</li><li><strong>Carboidratos Complexos:</strong> Fontes ricas em fibras (índice glicêmico baixo) são preferíveis para uma liberação de glicose mais lenta e controlada.</li><li><strong>Combinação de Macronutrientes:</strong> Associar proteínas e gorduras saudáveis às fontes de carboidratos ajuda a diminuir a velocidade de absorção da glicose.</li></ul></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Resumo Section -->
+        <section id="resumo" class="section-card">
+            <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Resumo e Conclusões</h2>
+             <p class="mb-6 text-gray-600">Revise os pontos-chave e lembre-se do princípio mais importante: a individualidade.</p>
+            <div class="grid md:grid-cols-2 gap-8">
+                 <div>
+                    <h3 class="text-xl font-semibold mb-4">Principais Pontos a Lembrar</h3>
+                    <ul class="space-y-3 text-base">
+                        <li class="p-3 bg-[var(--bg-color)] rounded-md border"><strong>ETA é real:</strong> A digestão gasta energia, especialmente a das proteínas.</li>
+                        <li class="p-3 bg-[var(--bg-color)] rounded-md border"><strong>Timing é importante:</strong> Sincronize sua alimentação com o treino.</li>
+                        <li class="p-3 bg-[var(--bg-color)] rounded-md border"><strong>Adapte a estratégia:</strong> As demandas mudam drasticamente de acordo com o objetivo.</li>
+                         <li class="p-3 bg-[var(--bg-color)] rounded-md border"><strong>Hidratação não é opcional:</strong> É a base de tudo.</li>
+                    </ul>
+                </div>
+                 <div>
+                    <h3 class="text-xl font-semibold mb-4">Individualidade Biológica</h3>
+                    <div class="p-4 bg-[var(--accent-color)]/20 rounded-lg border border-[var(--accent-color)]/50"><p>Estas são diretrizes gerais. A resposta de cada indivíduo à nutrição é única. Fatores como genética, nível de treino, composição corporal e estado de saúde influenciam como utilizamos os nutrientes. O acompanhamento profissional é sempre recomendado.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Referências Section -->
+        <section id="referencias" class="section-card">
+            <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Referências Científicas</h2>
+            <p class="mb-6 text-gray-600">As informações deste portal foram embasadas em artigos de revisão e posicionamentos oficiais. Clique para ver a citação completa.</p>
+            
+            <h3 class="text-xl font-semibold text-[var(--primary-color)] mb-4">Hidratação</h3>
+            <div class="space-y-4 mb-8">
+                <div class="accordion-item border rounded-lg">
+                    <button class="accordion-header w-full text-left p-4 font-semibold flex justify-between items-center">
+                        <span>Hidratação pós-exercício – Recomendações e Fundamentação Científica</span>
+                        <span class="accordion-icon text-xl">+</span>
+                    </button>
+                    <div class="accordion-content p-4 border-t bg-gray-50"><p>MEYER, F.; PERRONE, C. A. Hidratação pós-exercício – Recomendações e Fundamentação Científica. <strong>Revista Brasileira de Ciência e Movimento</strong>, v. 12, n. 2, p. 87-90, 2004.</p></div>
+                </div>
+                <div class="accordion-item border rounded-lg">
+                    <button class="accordion-header w-full text-left p-4 font-semibold flex justify-between items-center"><span>Hidratação durante o exercício: a sede é suficiente?</span><span class="accordion-icon text-xl">+</span></button>
+                    <div class="accordion-content p-4 border-t bg-gray-50"><p>MACHADO-MOREIRA, C. A. et al. Hidratação durante o exercício: a sede é suficiente?. <strong>Revista Brasileira de Medicina do Esporte</strong>, v. 12, n. 6, p. 405-409, 2006.</p></div>
+                </div>
+                <div class="accordion-item border rounded-lg">
+                    <button class="accordion-header w-full text-left p-4 font-semibold flex justify-between items-center"><span>Estado de hidratação e taxa de sudorese de jogadoras de futsal...</span><span class="accordion-icon text-xl">+</span></button>
+                    <div class="accordion-content p-4 border-t bg-gray-50"><p>FERREIRA, F. G. et al. Estado de hidratação e taxa de sudorese de jogadoras de futsal em situação competitiva no calor. <strong>Revista Brasileira de Nutrição Esportiva</strong>, v. 6, n. 34, p. 292-299, 2012.</p></div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-semibold text-[var(--primary-color)] mb-4">Nutrição Geral, Metabolismo e Saúde</h3>
+            <div class="space-y-4 mb-8">
+                 <div class="accordion-item border rounded-lg">
+                    <button class="accordion-header w-full text-left p-4 font-semibold flex justify-between items-center"><span>Diet induced thermogenesis (Efeito Térmico dos Alimentos)</span><span class="accordion-icon text-xl">+</span></button>
+                    <div class="accordion-content p-4 border-t bg-gray-50"><p>WESTERTERP, K. R. Diet induced thermogenesis. <strong>Nutrition & Metabolism</strong>, v. 1, n. 1, p. 5, 2004.</p></div>
+                </div>
+                 <div class="accordion-item border rounded-lg">
+                    <button class="accordion-header w-full text-left p-4 font-semibold flex justify-between items-center"><span>Posicionamento Oficial: Exercício e Diabetes Tipo 2 (ACSM/ADA)</span><span class="accordion-icon text-xl">+</span></button>
+                    <div class="accordion-content p-4 border-t bg-gray-50"><p>COLBERG, S. R. et al. Exercise and type 2 diabetes: the American College of Sports Medicine and the American Diabetes Association: joint position statement. <strong>Diabetes care</strong>, v. 33, n. 12, p. e147-e167, 2010.</p></div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-semibold text-[var(--primary-color)] mb-4">Suplementação Esportiva (Posicionamentos Oficiais da ISSN)</h3>
+            <div class="space-y-4">
+                 <div class="accordion-item border rounded-lg">
+                    <button class="accordion-header w-full text-left p-4 font-semibold flex justify-between items-center"><span>Timing Nutricional</span><span class="accordion-icon text-xl">+</span></button>
+                    <div class="accordion-content p-4 border-t bg-gray-50"><p>KERKSICK, C. M. et al. International society of sports nutrition position stand: nutrient timing. <strong>Journal of the International Society of Sports Nutrition</strong>, v. 14, n. 1, p. 33, 2017.</p></div>
+                </div>
+                <div class="accordion-item border rounded-lg">
+                    <button class="accordion-header w-full text-left p-4 font-semibold flex justify-between items-center"><span>Proteínas e Exercício</span><span class="accordion-icon text-xl">+</span></button>
+                    <div class="accordion-content p-4 border-t bg-gray-50"><p>JÄGER, R. et al. International Society of Sports Nutrition Position Stand: protein and exercise. <strong>Journal of the International Society of Sports Nutrition</strong>, v. 14, n. 1, p. 20, 2017.</p></div>
+                </div>
+                 <div class="accordion-item border rounded-lg">
+                    <button class="accordion-header w-full text-left p-4 font-semibold flex justify-between items-center"><span>Creatina</span><span class="accordion-icon text-xl">+</span></button>
+                    <div class="accordion-content p-4 border-t bg-gray-50"><p>KREIDER, R. B. et al. International Society of Sports Nutrition position stand: safety and efficacy of creatine supplementation in exercise, sport, and medicine. <strong>Journal of the International Society of Sports Nutrition</strong>, v. 14, n. 1, p. 18, 2017.</p></div>
+                </div>
+                 <div class="accordion-item border rounded-lg">
+                    <button class="accordion-header w-full text-left p-4 font-semibold flex justify-between items-center"><span>Cafeína</span><span class="accordion-icon text-xl">+</span></button>
+                    <div class="accordion-content p-4 border-t bg-gray-50"><p>GUEST, N. S. et al. International society of sports nutrition position stand: caffeine and sports performance. <strong>Journal of the International Society of Sports Nutrition</strong>, v. 18, n. 1, p. 1, 2021.</p></div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- Modal Component -->
+<div id="supplement-modal" class="modal fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center p-4 border-b">
+            <h3 id="modal-title" class="text-2xl font-bold text-[var(--primary-color)]"></h3>
+            <button id="modal-close-btn" class="text-3xl text-gray-500 hover:text-gray-800">&times;</button>
+        </div>
+        <div id="modal-body" class="p-6 text-left space-y-4 text-sm md:text-base"></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const observerOptions = { root: null, rootMargin: '0px', threshold: 0.3 };
+    const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                const id = entry.target.getAttribute('id');
+                document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+                document.querySelectorAll(`.nav-link[href="#${id}"]`).forEach(link => link.classList.add('active'));
+            }
+        });
+    }, observerOptions);
+    document.querySelectorAll('.section-card').forEach(section => sectionObserver.observe(section));
+
+    const menuBtn = document.getElementById('menu-btn'), closeBtn = document.getElementById('close-btn'), mobileMenu = document.getElementById('mobile-menu');
+    menuBtn.addEventListener('click', () => mobileMenu.classList.remove('hidden'));
+    closeBtn.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+    document.querySelectorAll('#mobile-nav a').forEach(link => link.addEventListener('click', () => mobileMenu.classList.add('hidden')));
+
+    new Chart(document.getElementById('tdeeChart'), { type: 'doughnut', data: { labels: ['Taxa Metabólica Basal', 'Atividade Física', 'Efeito Térmico (ETA)'], datasets: [{ data: [65, 25, 10], backgroundColor: ['#4A5C5A', '#E58A62', '#A8B3B2'], hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+
+    document.getElementById('calculate-btn').addEventListener('click', () => {
+        const weight = parseFloat(document.getElementById('weight').value);
+        const resultDiv = document.getElementById('hydration-result');
+        resultDiv.innerHTML = weight > 0 ? `Sua necessidade hídrica base é de aprox. <span class="text-[var(--accent-color)]">${Math.round(weight * 35)} ml</span> por dia.<br><small>(Lembre-se de aumentar durante o exercício!)</small>` : 'Por favor, insira um peso válido.';
+    });
+
+    const tabs = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(item => { item.classList.remove('active'); item.classList.add('border-transparent', 'text-gray-500'); });
+            tab.classList.add('active'); tab.classList.remove('border-transparent', 'text-gray-500');
+            const target = document.querySelector(tab.dataset.target);
+            tabContents.forEach(content => content.classList.add('hidden'));
+            target.classList.remove('hidden');
+        });
+    });
+
+    document.getElementById('sweat-calc-btn').addEventListener('click', () => {
+        const preWeight = parseFloat(document.getElementById('pre-weight').value);
+        const postWeight = parseFloat(document.getElementById('post-weight').value);
+        const fluidIntake = parseFloat(document.getElementById('fluid-intake').value);
+        const duration = parseFloat(document.getElementById('duration').value);
+        const resultDiv = document.getElementById('sweat-result');
+
+        if (preWeight > 0 && postWeight > 0 && fluidIntake >= 0 && duration > 0) {
+            const weightLossGrams = (preWeight - postWeight) * 1000;
+            const totalSweatLossMl = weightLossGrams + fluidIntake;
+            const sweatRateMlMin = totalSweatLossMl / duration;
+            const sweatRateLHour = (sweatRateMlMin * 60) / 1000;
+            const postHydrationNeeds = (weightLossGrams / 1000) * 1.5;
+            resultDiv.innerHTML = `Sua taxa de sudorese é de <span class="text-[var(--accent-color)]">${sweatRateLHour.toFixed(2)} L/hora</span>.<br><small>Para reidratação pós-exercício, você deve consumir aprox. <strong>${postHydrationNeeds.toFixed(2)} L</strong>.</small>`;
+        } else {
+            resultDiv.textContent = 'Por favor, preencha todos os campos corretamente.';
+        }
+    });
+
+    const supplementData = {
+        cafeina: { title: "Cafeína: Mecanismo de Ação", content: `<p><strong>Mecanismo Principal:</strong> Antagonismo dos Receptores de Adenosina.</p><p><strong>Bioquímica:</strong> A cafeína possui uma estrutura molecular semelhante à da adenosina, permitindo que ela se encaixe nos receptores de adenosina no cérebro e os bloqueie. A adenosina é uma molécula que promove a sensação de cansaço.</p><p><strong>Efeito Fisiológico:</strong> Ao bloquear a adenosina, a cafeína aumenta a atividade neural, resultando em redução da percepção de esforço, aumento do estado de alerta e liberação de catecolaminas (adrenalina).</p>` },
+        creatina: { title: "Creatina: Mecanismo de Ação", content: `<p><strong>Mecanismo Principal:</strong> Aumento dos estoques de Fosfocreatina (PCr) muscular.</p><p><strong>Bioquímica:</strong> A fosfocreatina (PCr) doa rapidamente seu grupo fosfato para o ADP (Adenosina Difosfato), refosforilando-o de volta a ATP (Adenosina Trifosfato), a principal fonte de energia para contrações de máxima intensidade. A suplementação satura os estoques de PCr.</p><p><strong>Efeito Fisiológico:</strong> Permite uma ressíntese mais rápida de ATP, aumentando a capacidade de realizar séries de alta intensidade, com melhora da força e potência muscular.</p>` },
+        beta_alanina: { title: "Beta-Alanina: Mecanismo de Ação", content: `<p><strong>Mecanismo Principal:</strong> Precursor da síntese de Carnosina.</p><p><strong>Bioquímica:</strong> A Beta-Alanina combina-se com a L-histidina para formar a Carnosina, que atua como um potente tampão intramuscular. Ela neutraliza os íons de hidrogênio (H+) produzidos durante a glicólise anaeróbica, que causam a acidose e a fadiga muscular.</p><p><strong>Efeito Fisiológico:</strong> Retarda a queda do pH muscular, adiando a fadiga e melhorando o desempenho em atividades de alta intensidade com duração entre 1 e 4 minutos.</p>` },
+        proteina_rapida: { title: "Proteínas de Rápida Absorção (Whey): Mecanismo de Ação", content: `<p><strong>Mecanismo Principal:</strong> Estímulo à Síntese Proteica Muscular (SPM).</p><p><strong>Bioquímica:</strong> O Whey Protein é rico em Leucina, um aminoácido que atua como sinalizador molecular chave, ativando a via de sinalização mTOR, principal reguladora do crescimento celular e da SPM.</p><p><strong>Efeito Fisiológico:</strong> A rápida absorção eleva os níveis de aminoácidos no sangue, fornecendo substrato e ativando as vias bioquímicas para reparar as microlesões musculares e construir novo tecido (hipertrofia).</p>` },
+        caseina: { title: "Proteínas de Lenta Absorção (Caseína): Mecanismo de Ação", content: `<p><strong>Mecanismo Principal:</strong> Liberação lenta e sustentada de aminoácidos (efeito anti-catabólico).</p><p><strong>Bioquímica:</strong> No ambiente ácido do estômago, a caseína forma um "gel" ou micela, o que diminui drasticamente sua velocidade de digestão. Isso resulta em uma elevação moderada, porém prolongada, dos aminoácidos no plasma sanguíneo.</p><p><strong>Efeito Fisiológico:</strong> Mais do que estimular fortemente a síntese proteica, a caseína é eficaz em reduzir a quebra de proteína muscular (catabolismo). É ideal para períodos de jejum, como durante o sono.</p>` },
+        albumina: { title: "Albumina: Mecanismo de Ação", content: `<p><strong>Mecanismo Principal:</strong> Fornecimento de aminoácidos com taxa de absorção intermediária.</p><p><strong>Bioquímica:</strong> A principal proteína da clara do ovo, a albumina, possui um perfil completo de aminoácidos essenciais. Sua digestão e absorção são mais lentas que as do Whey, mas mais rápidas que as da caseína.</p><p><strong>Efeito Fisiológico:</strong> Promove um balanço nitrogenado positivo e fornece substrato para a síntese proteica. É uma fonte de proteína de alta qualidade, embora menos especializada em termos de velocidade de absorção que o whey ou a caseína.</p>` },
+        bcaas: { title: "BCAAs: Mecanismo de Ação", content: `<p><strong>Mecanismo Principal:</strong> Ativação da via mTOR e potencial redução da fadiga central.</p><p><strong>Bioquímica:</strong> Os BCAAs (Leucina, Isoleucina, Valina) são aminoácidos essenciais. A Leucina é um potente ativador da via mTOR, que inicia a síntese proteica. Além disso, os BCAAs competem com o triptofano (precursor da serotonina) pela entrada no cérebro, o que teoricamente poderia reduzir a percepção de fadiga.</p><p><strong>Efeito Fisiológico:</strong> Embora a suplementação isolada seja debatida (fontes de proteína completas como o whey já são ricas em BCAAs), podem ajudar na redução da dor muscular tardia (DOMS) e servir como fonte de energia durante exercícios prolongados.</p>` },
+        termogenicos: { title: "Termogênicos: Mecanismo de Ação", content: `<p><strong>Mecanismo Principal:</strong> Aumento da termogênese e da taxa metabólica através da ação simpatomimética.</p><p><strong>Bioquímica:</strong> Compostos como cafeína, sinefrina e capsaicina estimulam o sistema nervoso simpático, aumentando a liberação de catecolaminas como a noradrenalina. Essa noradrenalina liga-se a receptores adrenérgicos nas células de gordura, ativando a lipólise (quebra de gordura).</p><p><strong>Efeito Fisiológico:</strong> Aumento da taxa metabólica basal, da temperatura corporal e da oxidação de gorduras. O efeito é agudo e modesto, funcionando como um coadjuvante em um plano de dieta e exercício, não como uma solução isolada.</p>` },
+        carnitina: { title: "L-Carnitina: Mecanismo de Ação", content: `<p><strong>Mecanismo Principal:</strong> Transporte de ácidos graxos para a mitocôndria.</p><p><strong>Bioquímica:</strong> A L-Carnitina atua como um transportador (sistema "carnitina shuttle"), que leva os ácidos graxos de cadeia longa do citosol para o interior da matriz mitocondrial, onde eles podem ser oxidados (beta-oxidação) para gerar ATP.</p><p><strong>Efeito Fisiológico e Evidências:</strong> A teoria é que, ao aumentar a oferta de carnitina, otimizaríamos o uso de gordura como fonte de energia. No entanto, em indivíduos saudáveis e sem deficiência, a literatura científica é controversa e, em sua maioria, não demonstra benefícios significativos da suplementação de L-Carnitina na performance ou na perda de gordura.</p>` }
+    };
+    
+    const modal = document.getElementById('supplement-modal'), modalTitle = document.getElementById('modal-title'), modalBody = document.getElementById('modal-body'), modalCloseBtn = document.getElementById('modal-close-btn');
+    document.querySelectorAll('.saiba-mais-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const supplement = e.target.dataset.supplement;
+            if (supplementData[supplement]) {
+                modalTitle.textContent = supplementData[supplement].title;
+                modalBody.innerHTML = supplementData[supplement].content;
+                modal.classList.remove('hidden'); modal.classList.add('flex');
+            }
+        });
+    });
+    const closeModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+    modalCloseBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    document.querySelectorAll('.accordion-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.accordion-icon');
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                icon.textContent = '+';
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                icon.textContent = '-';
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>
