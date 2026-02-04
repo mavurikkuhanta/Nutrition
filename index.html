@@ -9,10 +9,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Calm Academia -->
-    <!-- Application Structure Plan: A non-linear, single-page application with a sticky sidebar navigation. The structure allows students to explore topics based on interest. Key interactions like calculators, flip cards with modals, a 4-tab comparison interface, and an interactive accordion for scientific references are integrated to provide a comprehensive, multi-layered learning experience. -->
-    <!-- Visualization & Content Choices: Report Info: Energy Expenditure -> Goal: Inform -> Viz: Donut Chart -> Library: Chart.js. Report Info: Supplements vs. Food -> Goal: Compare/Organize -> Method: Interactive Flip Cards with a "Learn More" modal -> Justification: Progressive disclosure of information. Report Info: Hydration Rate Calculation (from articles) -> Goal: Personalize/Engage -> Method: Interactive Sweat Rate Calculator -> Justification: Directly applies formulas from the source material. Report Info: Scientific Articles -> Goal: Provide Evidence/Credit -> Method: Categorized Interactive Accordion -> Justification: Presents source citations in a clean, topic-grouped, and accessible format, reinforcing the scientific basis of all sections of the content. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         :root {
             --bg-color: #F8F7F3;
@@ -26,11 +22,16 @@
         .nav-link.active { background-color: var(--accent-color); color: white; font-weight: 600; }
         .section-card { background-color: white; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
         .section-card.visible { opacity: 1; transform: translateY(0); }
-        .flip-card { perspective: 1000px; }
-        .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
-        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
-        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; border-radius: 0.75rem; }
-        .flip-card-back { transform: rotateY(180deg); }
+        .info-card {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
         .chart-container { position: relative; width: 100%; max-width: 400px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
         @media (min-width: 768px) { .chart-container { height: 400px; } }
         .modal { transition: opacity 0.3s ease; }
@@ -49,7 +50,6 @@
 <body class="bg-gray-50">
 
 <div class="flex min-h-screen">
-    <!-- Sidebar -->
     <aside class="w-64 bg-white shadow-md hidden lg:flex flex-col p-4 fixed h-full">
         <h1 class="text-2xl font-bold text-[var(--primary-color)] text-center mb-8 mt-4">Nutri Performance</h1>
         <nav id="desktop-nav" class="flex flex-col space-y-2">
@@ -64,7 +64,6 @@
         </nav>
     </aside>
 
-    <!-- Mobile Header/Nav -->
     <header class="lg:hidden fixed top-0 left-0 right-0 bg-white shadow-md z-50 flex justify-between items-center p-4">
         <h1 class="text-xl font-bold text-[var(--primary-color)]">Nutri Performance</h1>
         <button id="menu-btn" class="p-2">
@@ -87,16 +86,14 @@
         </nav>
     </div>
 
-    <!-- Main Content -->
     <main class="flex-1 lg:ml-64 p-4 sm:p-8 pt-20 lg:pt-8">
         <section id="intro" class="section-card min-h-[80vh] flex flex-col items-center justify-center text-center">
-            <span class="text-lg font-semibold text-[var(--accent-color)]">Curso de Bacharelado em Educação Física</span>
+            <span class="text-lg font-semibold text-[var(--accent-color)]">Guia auxiliar de hábitos alimentares</span>
             <h2 class="text-4xl md:text-5xl font-bold text-[var(--primary-color)] mt-4">Portal de Nutrição e Exercício</h2>
             <p class="text-xl md:text-2xl mt-2 text-[var(--text-color)]">Da Performance Atlética à Saúde Metabólica</p>
             <p class="mt-12 text-gray-500">Role a página ou use a navegação para explorar os tópicos.</p>
         </section>
 
-        <!-- ETA Section -->
         <section id="eta" class="section-card">
              <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Efeito Térmico dos Alimentos (ETA)</h2>
             <p class="mb-6 text-gray-600">Explore como o corpo gasta energia para processar os alimentos, um fator chave no metabolismo e na estratégia nutricional.</p>
@@ -138,47 +135,44 @@
             </div>
         </section>
 
-        <!-- Fases do Treino Section -->
         <section id="fases" class="section-card">
             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Nutrição nas Fases do Treino</h2>
-            <p class="mb-6 text-gray-600">Explore as recomendações para cada momento e clique em "Saiba Mais" para entender os mecanismos bioquímicos de cada suplemento.</p>
+            <p class="mb-6 text-gray-600">Explore as recomendações para cada momento e clique em "Mecanismo de Ação" para entender a fundo a bioquímica de cada suplemento.</p>
             <div class="mb-8">
                 <h3 class="text-2xl font-semibold text-[var(--primary-color)] border-l-4 border-[var(--accent-color)] pl-4 mb-4">1. Pré-Treino</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Cafeína</h3><p>Melhora foco e performance</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="cafeina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Café, Chá Verde, Guaraná</p></div></div></div>
-                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Creatina</h3><p>Aumenta força e potência</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="creatina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Carne Vermelha, Salmão</p></div></div></div>
-                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Beta-Alanina</h3><p>Reduz a fadiga muscular</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="beta_alanina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Frango, Peru, Carnes</p></div></div></div>
+                    <div class="info-card"><div class="flex-grow"><h3 class="text-xl font-bold">Cafeína</h3><p class="text-gray-200 text-sm mb-3">Melhora foco e performance</p><p class="text-xs opacity-80"><strong>Fontes:</strong> Café, Chá Verde, Guaraná</p></div><button class="saiba-mais-btn w-full mt-4 bg-white/20 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-colors" data-supplement="cafeina">Mecanismo de Ação</button></div>
+                    <div class="info-card"><div class="flex-grow"><h3 class="text-xl font-bold">Creatina</h3><p class="text-gray-200 text-sm mb-3">Aumenta força e potência</p><p class="text-xs opacity-80"><strong>Fontes:</strong> Carne Vermelha, Salmão</p></div><button class="saiba-mais-btn w-full mt-4 bg-white/20 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-colors" data-supplement="creatina">Mecanismo de Ação</button></div>
+                    <div class="info-card"><div class="flex-grow"><h3 class="text-xl font-bold">Beta-Alanina</h3><p class="text-gray-200 text-sm mb-3">Reduz a fadiga muscular</p><p class="text-xs opacity-80"><strong>Fontes:</strong> Frango, Peru, Carnes</p></div><button class="saiba-mais-btn w-full mt-4 bg-white/20 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-colors" data-supplement="beta_alanina">Mecanismo de Ação</button></div>
                 </div>
             </div>
             <div class="mb-8">
                  <h3 class="text-2xl font-semibold text-[var(--primary-color)] border-l-4 border-[var(--accent-color)] pl-4 mb-4">2. Durante o Treino</h3>
                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl">
-                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white p-4 text-center"><h3 class="text-xl font-bold">Carboidratos Rápidos</h3><p>(Maltodextrina/Dextrose)</p><small class="mt-2 block">Fornecem glicose de rápida absorção para manter a energia.</small></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Mel, Banana, Suco de Uva</p></div></div></div>
-                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white p-4 text-center"><h3 class="text-xl font-bold">Bebidas Esportivas</h3><p>Reposição de eletrólitos</p><small class="mt-2 block">Repõem fluidos e sais minerais (sódio, potássio) perdidos no suor.</small></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Água de Coco</p></div></div></div>
+                    <div class="info-card"><h3 class="text-xl font-bold">Carboidratos Rápidos</h3><p class="text-gray-200 text-sm mb-3">(Maltodextrina/Dextrose)</p><p class="text-xs opacity-80"><strong>Fontes:</strong> Mel, Banana, Suco de Uva</p></div>
+                    <div class="info-card"><h3 class="text-xl font-bold">Bebidas Esportivas</h3><p class="text-gray-200 text-sm mb-3">Reposição de eletrólitos</p><p class="text-xs opacity-80"><strong>Fontes:</strong> Água de Coco</p></div>
                 </div>
             </div>
             <div>
                 <h3 class="text-2xl font-semibold text-[var(--primary-color)] border-l-4 border-[var(--accent-color)] pl-4 mb-4">3. Pós-Treino</h3>
                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Proteínas Rápidas</h3><p>(Whey Protein)</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="proteina_rapida">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Frango, Ovos, Iogurte</p></div></div></div>
-                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Proteínas Lentas</h3><p>(Caseína)</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="caseina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Queijo Cottage, Laticínios</p></div></div></div>
-                    <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Albumina</h3><p>Proteína do ovo</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="albumina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Claras de ovos</p></div></div></div>
+                    <div class="info-card"><div class="flex-grow"><h3 class="text-xl font-bold">Proteínas Rápidas</h3><p class="text-gray-200 text-sm mb-3">(Whey Protein)</p><p class="text-xs opacity-80"><strong>Fontes:</strong> Frango, Ovos, Iogurte</p></div><button class="saiba-mais-btn w-full mt-4 bg-white/20 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-colors" data-supplement="proteina_rapida">Mecanismo de Ação</button></div>
+                    <div class="info-card"><div class="flex-grow"><h3 class="text-xl font-bold">Proteínas Lentas</h3><p class="text-gray-200 text-sm mb-3">(Caseína)</p><p class="text-xs opacity-80"><strong>Fontes:</strong> Queijo Cottage, Laticínios</p></div><button class="saiba-mais-btn w-full mt-4 bg-white/20 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-colors" data-supplement="caseina">Mecanismo de Ação</button></div>
+                    <div class="info-card"><div class="flex-grow"><h3 class="text-xl font-bold">Albumina</h3><p class="text-gray-200 text-sm mb-3">Proteína do ovo</p><p class="text-xs opacity-80"><strong>Fontes:</strong> Claras de ovos</p></div><button class="saiba-mais-btn w-full mt-4 bg-white/20 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-colors" data-supplement="albumina">Mecanismo de Ação</button></div>
                 </div>
             </div>
         </section>
 
-        <!-- Outros Suplementos Section -->
         <section id="outros-suplementos" class="section-card">
              <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Outros Suplementos e Compostos Bioativos</h2>
             <p class="mb-6 text-gray-600">Explore outros suplementos populares, entendendo seus mecanismos e o contexto científico de sua utilização.</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">BCAAs</h3><p>Aminoácidos essenciais</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="bcaas">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Carnes, Ovos, Laticínios</p></div></div></div>
-                <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">Termogênicos</h3><p>Aceleradores metabólicos</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="termogenicos">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Pimenta, Gengibre, Canela</p></div></div></div>
-                <div class="flip-card h-56 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-[var(--primary-color)] text-white relative p-4"><h3 class="text-xl font-bold">L-Carnitina</h3><p>Metabolismo de gorduras</p><button class="saiba-mais-btn absolute bottom-4 bg-white/20 px-3 py-1 rounded-full text-sm" data-supplement="carnitina">Saiba Mais</button></div><div class="flip-card-back bg-[var(--accent-color)] text-white"><h3 class="font-bold">Alternativa Alimentar</h3><p>Carne Vermelha, Peixe</p></div></div></div>
+                <div class="info-card"><div class="flex-grow"><h3 class="text-xl font-bold">BCAAs</h3><p class="text-gray-200 text-sm mb-3">Aminoácidos essenciais</p><p class="text-xs opacity-80"><strong>Fontes:</strong> Carnes, Ovos, Laticínios</p></div><button class="saiba-mais-btn w-full mt-4 bg-white/20 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-colors" data-supplement="bcaas">Mecanismo de Ação</button></div>
+                <div class="info-card"><div class="flex-grow"><h3 class="text-xl font-bold">Termogênicos</h3><p class="text-gray-200 text-sm mb-3">Aceleradores metabólicos</p><p class="text-xs opacity-80"><strong>Fontes:</strong> Pimenta, Gengibre, Canela</p></div><button class="saiba-mais-btn w-full mt-4 bg-white/20 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-colors" data-supplement="termogenicos">Mecanismo de Ação</button></div>
+                <div class="info-card"><div class="flex-grow"><h3 class="text-xl font-bold">L-Carnitina</h3><p class="text-gray-200 text-sm mb-3">Metabolismo de gorduras</p><p class="text-xs opacity-80"><strong>Fontes:</strong> Carne Vermelha, Peixe</p></div><button class="saiba-mais-btn w-full mt-4 bg-white/20 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-colors" data-supplement="carnitina">Mecanismo de Ação</button></div>
             </div>
         </section>
         
-        <!-- Hidratação Section -->
         <section id="hidratacao" class="section-card">
             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">A Peça Fundamental: Hidratação</h2>
             <p class="mb-6 text-gray-600">A água é crucial para a performance e termorregulação. Explore as ferramentas e diretrizes baseadas na ciência para otimizar sua hidratação.</p>
@@ -223,16 +217,15 @@
                     <div>
                         <h4 class="font-bold text-lg text-[var(--primary-color)] mb-2">Diretrizes de Hidratação (ACSM/NATA)</h4>
                         <div class="space-y-4">
-                             <div class="flip-card h-28 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-blue-100 border border-blue-300 text-blue-800"><h5 class="font-bold">PRÉ-EXERCÍCIO</h5><p>Clique para ver a recomendação</p></div><div class="flip-card-back bg-blue-200 border border-blue-400 text-blue-900"><p class="text-center"><strong>500-600 ml</strong> de água ou bebida esportiva, <strong>2-3 horas antes</strong>.</p></div></div></div>
-                             <div class="flip-card h-28 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-green-100 border border-green-300 text-green-800"><h5 class="font-bold">DURANTE O EXERCÍCIO</h5><p>Clique para ver a recomendação</p></div><div class="flip-card-back bg-green-200 border border-green-400 text-green-900"><p class="text-center">Repor o máximo de líquido tolerado, buscando igualar a taxa de sudorese.</p></div></div></div>
-                             <div class="flip-card h-28 cursor-pointer" onclick="this.classList.toggle('flipped')"><div class="flip-card-inner"><div class="flip-card-front bg-yellow-100 border border-yellow-300 text-yellow-800"><h5 class="font-bold">PÓS-EXERCÍCIO (RECOMENDAÇÃO CHAVE)</h5><p>Clique para ver a recomendação</p></div><div class="flip-card-back bg-yellow-200 border border-yellow-400 text-yellow-900"><p class="text-center">Ingerir <strong>150% do peso perdido</strong>. Ex: perdeu 1kg, ingerir 1,5L de líquido.</p></div></div></div>
+                            <div class="info-card h-28 bg-blue-600"><h5 class="font-bold">PRÉ-EXERCÍCIO</h5><p class="text-center text-sm"><strong>500-600 ml</strong> de água ou bebida esportiva, <strong>2-3 horas antes</strong>.</p></div>
+                            <div class="info-card h-28 bg-green-600"><h5 class="font-bold">DURANTE O EXERCÍCIO</h5><p class="text-center text-sm">Repor o máximo de líquido tolerado, buscando igualar a taxa de sudorese.</p></div>
+                            <div class="info-card h-28 bg-yellow-500"><h5 class="font-bold">PÓS-EXERCÍCIO (RECOMENDAÇÃO CHAVE)</h5><p class="text-center text-sm">Ingerir <strong>150% do peso perdido</strong>. Ex: perdeu 1kg, ingerir 1,5L de líquido.</p></div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
         
-        <!-- Aplicações Práticas Section -->
         <section id="aplicacoes" class="section-card">
             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Aplicações Práticas</h2>
             <p class="mb-6 text-gray-600">As estratégias nutricionais devem ser adaptadas para objetivos distintos. Compare as abordagens para performance e saúde.</p>
@@ -252,7 +245,6 @@
             </div>
         </section>
         
-        <!-- Resumo Section -->
         <section id="resumo" class="section-card">
             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Resumo e Conclusões</h2>
              <p class="mb-6 text-gray-600">Revise os pontos-chave e lembre-se do princípio mais importante: a individualidade.</p>
@@ -273,7 +265,6 @@
             </div>
         </section>
 
-        <!-- Referências Section -->
         <section id="referencias" class="section-card">
             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Referências Científicas</h2>
             <p class="mb-6 text-gray-600">As informações deste portal foram embasadas em artigos de revisão e posicionamentos oficiais. Clique para ver a citação completa.</p>
@@ -332,7 +323,6 @@
     </main>
 </div>
 
-<!-- Modal Component -->
 <div id="supplement-modal" class="modal fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center p-4 border-b">
