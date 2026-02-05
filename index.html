@@ -30,6 +30,40 @@
         h1, h2, h3, h4 { letter-spacing: -0.025em; }
         .serif-text { font-family: 'Merriweather', serif; }
 
+        /* LOADING SCREEN STYLES */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 9999; /* Acima de tudo */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+        }
+        
+        #loading-screen.hidden-loader {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(59, 130, 246, 0.2); /* Azul claro */
+            border-top: 5px solid var(--primary-color); /* Azul escuro */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         /* Navegação */
         .nav-link { transition: all 0.2s ease-in-out; border-radius: 0.5rem; cursor: pointer; border-left: 3px solid transparent; }
         .nav-link:hover { background-color: rgba(59, 130, 246, 0.1); color: var(--accent-color); padding-left: 1.25rem; }
@@ -39,7 +73,7 @@
         /* Cards */
         .section-card { background-color: white; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; box-shadow: var(--card-shadow); border: 1px solid rgba(0,0,0,0.05); }
         
-        /* Info Cards (Estilo Dark Blue) */
+        /* Info Cards */
         .info-card {
             background-color: var(--primary-color);
             color: white;
@@ -86,7 +120,7 @@
         .tab-button.active { border-bottom-color: var(--accent-color); color: var(--primary-color); font-weight: 600; background-color: rgba(59, 130, 246, 0.05); }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
         
-        /* Mitos e Verdades (Resumo Interativo) */
+        /* Mitos e Verdades */
         .myth-item { border: 1px solid #E2E8F0; border-radius: 0.5rem; margin-bottom: 0.75rem; background-color: white; overflow: hidden; }
         .myth-header { width: 100%; text-align: left; padding: 1rem; background-color: #F8FAFC; font-weight: 600; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background-color 0.2s; }
         .myth-header:hover { background-color: #F1F5F9; }
@@ -97,7 +131,7 @@
         .tag-verdade { background-color: #BBF7D0; color: #166534; }
         .tag-depende { background-color: #FEF08A; color: #854D0E; }
 
-        /* Typography Content (Modais Restaurados) */
+        /* Typography Content */
         #modal-body h4 { color: var(--primary-color); font-size: 1.1rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 2px solid #E2E8F0; padding-bottom: 0.25rem; }
         #modal-body h4:first-child { margin-top: 0; }
         #modal-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
@@ -105,9 +139,25 @@
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         @media (max-width: 768px) { .section-card { padding: 1.5rem; } }
+
+        @media print {
+            aside, header, #menu-btn, .no-print, button:not(.accordion-header), #loading-screen { display: none !important; }
+            main { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+            .section-card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid; }
+            body { background-color: white; color: black; }
+            .chart-container { height: 250px; }
+        }
     </style>
 </head>
 <body class="bg-[#F0F4F8] text-slate-800">
+
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+    <div class="spinner"></div>
+    <h1 class="text-3xl font-bold text-[#1E3A8A] mb-2 animate-pulse">Fisiologia & Nutrição</h1>
+    <p class="text-sm text-slate-500 font-semibold tracking-wider">@pensandooef</p>
+    <p class="text-xs text-slate-400 mt-4">Carregando módulos...</p>
+</div>
 
 <div class="flex min-h-screen relative">
     <!-- Sidebar Navigation -->
@@ -167,7 +217,7 @@
             </div>
         </section>
 
-        <!-- ETA Section (Gráfico + Calculadora + Barras + Texto) -->
+        <!-- ETA Section -->
         <section id="eta" class="section-card">
             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Efeito Térmico dos Alimentos (ETA)</h2>
             <p class="mb-8 text-slate-600">Termodinâmica Nutricional: o custo energético da digestão.</p>
@@ -203,7 +253,7 @@
             </div>
         </section>
 
-        <!-- Fases do Treino (ORGANIZADO: INTRA E PÓS SEPARADOS) -->
+        <!-- Fases do Treino -->
         <section id="fases" class="section-card">
             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-6">Timing Nutricional e Bioquímica</h2>
             
@@ -253,7 +303,7 @@
             </div>
         </section>
 
-        <!-- Hidratação: Completo -->
+        <!-- Hidratação -->
         <section id="hidratacao" class="section-card">
             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-6">Hidratação & Fisiologia Cardiovascular</h2>
             <div class="grid lg:grid-cols-2 gap-10 items-start mb-10">
@@ -292,7 +342,7 @@
             </div>
         </section>
 
-        <!-- Aplicações Práticas (EXPANDIDA E DETALHADA) -->
+        <!-- Aplicações Práticas -->
         <section id="aplicacoes" class="section-card">
             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-4">Aplicações Práticas: Da Teoria à Prescrição</h2>
             <div class="w-full">
@@ -354,36 +404,26 @@
                     <div><label class="block text-sm font-bold text-slate-700 mb-1">Observações</label><textarea id="fb-obs" rows="3" class="feedback-input"></textarea></div>
                     <button id="btn-gerar-feedback" class="w-full py-3 bg-[var(--primary-color)] text-white font-bold rounded shadow-md">Gerar Relatório</button>
                 </div>
-                <div class="bg-slate-100 rounded-lg p-6 border border-slate-200 relative"><textarea id="fb-output" class="w-full h-full bg-white p-4 rounded border text-sm font-mono resize-none focus:outline-none" readonly>Preencha e gere...</textarea><button id="btn-copiar-feedback" class="absolute top-10 right-6 bg-white border px-3 py-1 rounded text-xs font-bold hidden">Copiar</button></div>
+                <div class="bg-slate-100 rounded-lg p-6 border border-slate-200 relative flex flex-col">
+                    <textarea id="fb-output" class="w-full h-full bg-white p-4 rounded border text-sm font-mono resize-none focus:outline-none mb-4" readonly>Preencha e gere...</textarea>
+                    <div class="flex gap-2 justify-end">
+                        <button id="btn-copiar-feedback" class="bg-white border px-4 py-2 rounded text-xs font-bold hidden hover:bg-gray-50 transition-all">Copiar Texto</button>
+                        <button id="btn-whatsapp-feedback" class="bg-green-500 text-white px-4 py-2 rounded text-xs font-bold hidden hover:bg-green-600 transition-all flex items-center"><span class="mr-1">📱</span> Enviar no WhatsApp</button>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- Resumo Gamificado (MITOS E VERDADES) -->
+        <!-- Resumo Gamificado -->
         <section id="resumo" class="section-card">
             <h2 class="text-3xl font-bold text-[var(--primary-color)] mb-2">Resumo: Mitos e Verdades</h2>
             <p class="mb-6 text-slate-600">Clique nas afirmações abaixo para descobrir o veredito baseado em evidências.</p>
-            
             <div class="space-y-2">
-                <div class="myth-item">
-                    <div class="myth-header"><span>1. Carboidrato à noite engorda mais?</span><span>▼</span></div>
-                    <div class="myth-content"><span class="myth-tag tag-mito">Mito</span> A termodinâmica não muda com o relógio. O ganho de peso depende do balanço calórico total do dia. Se você treina à noite, o carboidrato noturno é essencial para a recuperação.</div>
-                </div>
-                <div class="myth-item">
-                    <div class="myth-header"><span>2. Whey Protein só funciona no pós-treino imediato?</span><span>▼</span></div>
-                    <div class="myth-content"><span class="myth-tag tag-mito">Mito</span> A "janela anabólica" é maior do que se pensava (até 24h). O total proteico do dia é mais importante que o timing exato, embora o pós-treino seja um momento conveniente.</div>
-                </div>
-                <div class="myth-item">
-                    <div class="myth-header"><span>3. Quanto mais água, melhor?</span><span>▼</span></div>
-                    <div class="myth-content"><span class="myth-tag tag-depende">Depende</span> A super-hidratação sem eletrólitos pode levar à hiponatremia (baixa de sódio), que é perigosa. Beba conforme a sede e a taxa de sudorese, monitorando a cor da urina.</div>
-                </div>
-                <div class="myth-item">
-                    <div class="myth-header"><span>4. Creatina retém líquido e incha?</span><span>▼</span></div>
-                    <div class="myth-content"><span class="myth-tag tag-verdade">Verdade (Intracelular)</span> A creatina puxa água para DENTRO da célula muscular (intumescimento), o que é um sinal anabólico positivo. Não é retenção subcutânea (inchaço "ruim").</div>
-                </div>
-                <div class="myth-item">
-                    <div class="myth-header"><span>5. Cafeína desidrata?</span><span>▼</span></div>
-                    <div class="myth-content"><span class="myth-tag tag-mito">Mito</span> Em doses habituais de consumo (até 300-400mg), a cafeína não altera significativamente a diurese a ponto de prejudicar a hidratação durante o exercício.</div>
-                </div>
+                <div class="myth-item"><div class="myth-header"><span>1. Carboidrato à noite engorda mais?</span><span>▼</span></div><div class="myth-content"><span class="myth-tag tag-mito">Mito</span> A termodinâmica não muda com o relógio. O ganho de peso depende do balanço calórico total do dia. Se você treina à noite, o carboidrato noturno é essencial para a recuperação.</div></div>
+                <div class="myth-item"><div class="myth-header"><span>2. Whey Protein só funciona no pós-treino imediato?</span><span>▼</span></div><div class="myth-content"><span class="myth-tag tag-mito">Mito</span> A "janela anabólica" é maior do que se pensava (até 24h). O total proteico do dia é mais importante que o timing exato, embora o pós-treino seja um momento conveniente.</div></div>
+                <div class="myth-item"><div class="myth-header"><span>3. Quanto mais água, melhor?</span><span>▼</span></div><div class="myth-content"><span class="myth-tag tag-depende">Depende</span> A super-hidratação sem eletrólitos pode levar à hiponatremia (baixa de sódio), que é perigosa. Beba conforme a sede e a taxa de sudorese, monitorando a cor da urina.</div></div>
+                <div class="myth-item"><div class="myth-header"><span>4. Creatina retém líquido e incha?</span><span>▼</span></div><div class="myth-content"><span class="myth-tag tag-verdade">Verdade (Intracelular)</span> A creatina puxa água para DENTRO da célula muscular (intumescimento), o que é um sinal anabólico positivo. Não é retenção subcutânea (inchaço "ruim").</div></div>
+                <div class="myth-item"><div class="myth-header"><span>5. Cafeína desidrata?</span><span>▼</span></div><div class="myth-content"><span class="myth-tag tag-mito">Mito</span> Em doses habituais de consumo (até 300-400mg), a cafeína não altera significativamente a diurese a ponto de prejudicar a hidratação durante o exercício.</div></div>
             </div>
         </section>
 
@@ -401,7 +441,7 @@
     </main>
 </div>
 
-<!-- Modal para Mecanismos de Ação (CONTEÚDO MESTRE RESTAURADO) -->
+<!-- Modal -->
 <div id="supplement-modal" class="modal fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto transform transition-all scale-100">
         <div class="flex justify-between items-center p-6 border-b bg-slate-50">
@@ -414,7 +454,16 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Navigation
+    // 0. Loading Screen Logic
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const loader = document.getElementById('loading-screen');
+            loader.classList.add('hidden-loader');
+            setTimeout(() => loader.remove(), 600); // Remove do DOM após fade
+        }, 1500); // Tempo de exibição (1.5s)
+    });
+
+    // 1. Navigation
     const setActive = (id) => { document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active')); document.querySelectorAll(`.nav-link[href="#${id}"]`).forEach(l => l.classList.add('active')); };
     const sectionObserver = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }); }, { rootMargin: '-20% 0px -70% 0px' });
     document.querySelectorAll('.section-card').forEach(s => sectionObserver.observe(s));
@@ -422,7 +471,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('menu-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.remove('hidden'));
     document.getElementById('close-btn').addEventListener('click', () => document.getElementById('mobile-menu').classList.add('hidden'));
 
-    // Charts & Calcs
+    // 2. Charts & Calcs
     const ctx = document.getElementById('tdeeChart');
     let tdeeChart;
     if(ctx) { tdeeChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Basal', 'Atividade', 'ETA'], datasets: [{ data: [1600, 560, 240], backgroundColor: ['#1E3A8A', '#3B82F6', '#94A3B8'], borderWidth: 0, hoverOffset: 8 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } } } }); }
@@ -447,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // CONTEÚDO MESTRE RESTAURADO
+    // 3. CONTEÚDO MESTRE RESTAURADO
     const supplementData = {
         cafeina: { 
             title: "Cafeína: Mecanismos Integrados", 
@@ -482,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('modal-close-btn').addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => { if(e.target===modal) closeModal(); });
 
-    // Tabs & Accordion
+    // 4. Tabs & Accordion
     document.querySelectorAll('.tab-button').forEach(t => t.addEventListener('click', () => {
         document.querySelectorAll('.tab-button').forEach(x => x.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(x => x.classList.add('hidden'));
@@ -493,11 +542,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Myth Accordion Logic
     document.querySelectorAll('.myth-header').forEach(h => h.addEventListener('click', () => {
         const c = h.nextElementSibling;
-        if (c.classList.contains('open')) {
-            c.classList.remove('open');
-        } else {
-            document.querySelectorAll('.myth-content').forEach(mc => mc.classList.remove('open'));
-            c.classList.add('open');
+        if (c.classList.contains('open')) { c.classList.remove('open'); } else {
+            document.querySelectorAll('.myth-content').forEach(mc => mc.classList.remove('open')); c.classList.add('open');
         }
     }));
 
@@ -505,15 +551,22 @@ document.addEventListener('DOMContentLoaded', function () {
         const c = h.nextElementSibling; c.style.maxHeight = c.style.maxHeight ? null : c.scrollHeight + "px";
     }));
 
-    // Feedback Gen
+    // 5. Feedback Gen (WITH WHATSAPP BUTTON)
     const btnGerarFeedback = document.getElementById('btn-gerar-feedback');
     const btnCopiarFeedback = document.getElementById('btn-copiar-feedback');
+    const btnWhatsapp = document.getElementById('btn-whatsapp-feedback');
     const outputTextarea = document.getElementById('fb-output');
+    
     if(btnGerarFeedback) {
         btnGerarFeedback.addEventListener('click', () => {
             const fase = document.getElementById('fb-fase').value, int = document.getElementById('fb-intensidade').value, vol = document.getElementById('fb-volume').value || "N/A", obs = document.getElementById('fb-obs').value || "N/A";
-            outputTextarea.value = `Olá, Nutri!\nReport do Treinador (@pensandooef):\n\nFASE: ${fase}\nINTENSIDADE: ${int}\nVOLUME: ${vol}\nOBS: ${obs}`;
+            const text = `Olá, Nutri!\nReport do Treinador (@pensandooef):\n\nFASE: ${fase}\nINTENSIDADE: ${int}\nVOLUME: ${vol}\nOBS: ${obs}`;
+            outputTextarea.value = text;
             btnCopiarFeedback.classList.remove('hidden');
+            btnWhatsapp.classList.remove('hidden');
+            
+            const encodedText = encodeURIComponent(text);
+            btnWhatsapp.onclick = () => window.open(`https://wa.me/?text=${encodedText}`, '_blank');
         });
         btnCopiarFeedback.addEventListener('click', () => { outputTextarea.select(); document.execCommand('copy'); });
     }
